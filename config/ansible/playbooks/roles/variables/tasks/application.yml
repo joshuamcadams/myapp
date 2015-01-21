@@ -1,0 +1,21 @@
+---
+- name: check if .env exists
+  stat: path=/var/www/{{app_root}}/shared/.env/production_env.yml
+  register: env_file
+
+- name: delete .env if exists
+  shell: rm /var/www/{{app_root}}/shared/.env/production_env.yml
+  when: env_file.stat.exists == true
+
+- name: add environment variables to .env
+  lineinfile:
+    dest=/var/www/{{app_root}}/shared/.env/production_env.yml
+    line='{{item}}'
+    owner={{server_user}}
+    insertafter=EOF
+    create=true
+  with_items:
+    - 'database_name: {{database_name}}'
+    - 'database_user: {{database_user}}'
+    - 'database_password: {{database_password}}'
+    - 'secret_key_base: {{secret_key_base}}'

@@ -1,0 +1,25 @@
+---
+- name: check if .profile exists
+  stat: path=/home/{{server_user}}/.profile
+  register: profile_file
+
+- name: delete .profile if exists
+  shell: rm /home/{{server_user}}/.profile
+  when: profile_file.stat.exists == true
+
+- name: recreate .profile from a clean template
+  template: src=profile dest=/home/{{server_user}}/.profile owner=deploy group=deploy
+
+- name: add environment variables to .profile
+  lineinfile:
+    dest=/home/{{server_user}}/.profile
+    line='{{item}}'
+    owner={{server_user}}
+    insertafter=EOF
+    create=true
+  with_items:
+    - export APP_NAME={{app_name}}
+    - export APP_ROOT={{app_root}}
+    - export APP_DOMAIN="{{server_domain}}"
+    - export APP_REPO="{{app_repo}}"
+    - export APP_REPO_BRANCH={{app_repo_branch}}
